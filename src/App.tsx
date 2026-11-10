@@ -4,7 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute.tsx'
 import { useAuth } from './context/AuthContext.ts'
 import MainLayout from './layout/MainLayout.tsx'
 import Login from './pages/auth/Login.tsx'
-import Home from './pages/home/Home.tsx'
+import ProjectList from './pages/project/ProjectList.tsx'
 
 function App() {
   const { isInitialized } = useAuth()
@@ -23,7 +23,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<ProjectList />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
