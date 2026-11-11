@@ -5,14 +5,18 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.ts'
 import type { ErrorRes } from '../../type/AuthType.ts'
 
-// 400(틀림)·423(잠김)·429(너무 잦음)는 서버가 보낸 문구를 그대로 보여 준다.
+// 사용자에게 보여 줄 문구가 오는 응답: 400(틀림)·423(잠김)·429(너무 잦음).
+// 그 밖의 응답(CSRF 실패 등)에 담긴 서버 문구는 내부 문구라서 보여 주지 않는다.
+const SERVER_MESSAGE_STATUSES = [400, 423, 429]
+
 function errorMessage(error: unknown) {
   if (axios.isAxiosError<ErrorRes>(error)) {
     if (!error.response) {
       return '서버에 연결할 수 없습니다.'
     }
-    if (error.response.data?.detail) {
-      return error.response.data.detail
+    const { status, data } = error.response
+    if (SERVER_MESSAGE_STATUSES.includes(status) && data?.detail) {
+      return data.detail
     }
   }
   return '로그인하지 못했습니다. 잠시 후 다시 시도하세요.'
