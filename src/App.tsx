@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute.tsx'
 import { useAuth } from './context/AuthContext.ts'
 import MainLayout from './layout/MainLayout.tsx'
 import Login from './pages/auth/Login.tsx'
+import ProjectCreate from './pages/project/ProjectCreate.tsx'
 import ProjectList from './pages/project/ProjectList.tsx'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<ProjectList />} />
+          <Route path="/projects/new" element={<ProjectCreate />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

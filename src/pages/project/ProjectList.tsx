@@ -1,5 +1,7 @@
 import {
   Alert,
+  Box,
+  Button,
   CircularProgress,
   Paper,
   Table,
@@ -11,6 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { fetchProjects } from '../../api/project/ProjectApi.ts'
 import type { ProjectRes } from '../../type/ProjectType.ts'
 
@@ -80,9 +83,14 @@ export default function ProjectList() {
 
   return (
     <>
-      <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
-        프로젝트
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h5" component="h1">
+          프로젝트
+        </Typography>
+        <Button component={RouterLink} to="/projects/new" variant="contained">
+          프로젝트 등록
+        </Button>
+      </Box>
       {content}
     </>
   )
