@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Link,
   Paper,
   Table,
   TableBody,
@@ -17,14 +18,7 @@ import { useEffect, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { fetchProjects } from '../../api/project/ProjectApi.ts'
 import type { ProjectRes } from '../../type/ProjectType.ts'
-
-// 서버는 시간대가 붙은 시각을 보낸다. 브라우저 시간대 기준으로 날짜만 보여 준다.
-function formatDate(value: string) {
-  const date = new Date(value)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
+import { formatDate } from '../../utils/formatDate.ts'
 
 export default function ProjectList() {
   // null이면 아직 불러오는 중이다.
@@ -69,7 +63,11 @@ export default function ProjectList() {
           <TableBody>
             {projects.map((project) => (
               <TableRow key={project.id}>
-                <TableCell>{project.name}</TableCell>
+                <TableCell>
+                  <Link component={RouterLink} to={`/projects/${project.id}`}>
+                    {project.name}
+                  </Link>
+                </TableCell>
                 <TableCell align="right">{project.target_count}</TableCell>
                 <TableCell>{project.description}</TableCell>
                 <TableCell>

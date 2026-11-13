@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext.ts'
 import MainLayout from './layout/MainLayout.tsx'
 import Login from './pages/auth/Login.tsx'
 import ProjectCreate from './pages/project/ProjectCreate.tsx'
+import ProjectDetail from './pages/project/ProjectDetail.tsx'
 import ProjectList from './pages/project/ProjectList.tsx'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<ProjectList />} />
           <Route path="/projects/new" element={<ProjectCreate />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
