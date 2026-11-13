@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Paper,
   Table,
@@ -71,7 +72,13 @@ export default function ProjectList() {
                 <TableCell>{project.name}</TableCell>
                 <TableCell align="right">{project.target_count}</TableCell>
                 <TableCell>{project.description}</TableCell>
-                <TableCell>{project.stack}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {project.stack.map((item) => (
+                      <Chip key={item} label={item} size="small" />
+                    ))}
+                  </Box>
+                </TableCell>
                 <TableCell>{formatDate(project.created_at)}</TableCell>
               </TableRow>
             ))}
