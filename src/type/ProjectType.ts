@@ -39,3 +39,18 @@ export interface ProjectDetailRes {
   targets: TargetRes[]
   created_at: string
 }
+
+export interface TargetCreateReq {
+  name: string
+  kind: TargetKind
+  environment: TargetEnvironment
+  config: Record<string, string>
+}
+
+// 400 응답. config 오류는 칸마다 나뉘어 온다. 예: { config: { path: ['/로 시작하는 ...'] } }
+export interface TargetFieldErrors {
+  name?: string[]
+  kind?: string[]
+  environment?: string[]
+  config?: Record<string, string[]> | string[]
+}

@@ -20,27 +20,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { fetchProject } from '../../api/project/ProjectApi.ts'
 import type { ProjectDetailRes } from '../../type/ProjectType.ts'
 import { formatDate } from '../../utils/formatDate.ts'
-
-// 대상 종류별 정보(config) 칸 이름. 목록에 없는 칸은 저장된 이름 그대로 보여 준다.
-const CONFIG_LABELS: Record<string, string> = {
-  path: '경로',
-  url: '주소',
-  base_url: 'API 기본 주소',
-  swagger_url: 'Swagger 문서 주소',
-  login_path: '로그인 경로',
-  token_location: '토큰 위치',
-  account_id: 'AWS 계정 번호',
-  region: '리전',
-}
-
-// 정해진 값 중에서 고르는 칸은 저장된 값 대신 등록 화면에서 고른 이름으로 보여 준다.
-const CONFIG_VALUE_LABELS: Record<string, Record<string, string>> = {
-  token_location: { header: 'Authorization 헤더', cookie: '쿠키' },
-}
-
-function configValue(key: string, value: string) {
-  return CONFIG_VALUE_LABELS[key]?.[value] ?? value
-}
+import { configLabel, configValueLabel } from '../../utils/targetConfig.ts'
 
 export default function ProjectDetail() {
   // 주소 /projects/:id 의 id 부분. 주소에서 꺼낸 값이라 글자다.
@@ -109,9 +89,14 @@ export default function ProjectDetail() {
       )}
 
       <Box>
-        <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
-          점검 대상
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="h6" component="h2">
+            점검 대상
+          </Typography>
+          <Button component={RouterLink} to={`/projects/${project.id}/targets/new`} variant="contained">
+            대상 추가
+          </Button>
+        </Box>
         {project.targets.length === 0 ? (
           <Typography sx={{ color: 'text.secondary' }}>아직 등록한 점검 대상이 없습니다.</Typography>
         ) : (
@@ -134,7 +119,7 @@ export default function ProjectDetail() {
                     <TableCell>
                       {Object.entries(target.config).map(([key, value]) => (
                         <Typography key={key} variant="body2" sx={{ wordBreak: 'break-all' }}>
-                          {CONFIG_LABELS[key] ?? key}: {configValue(key, value)}
+                          {configLabel(key)}: {configValueLabel(key, value)}
                         </Typography>
                       ))}
                     </TableCell>

@@ -7,6 +7,7 @@ import Login from './pages/auth/Login.tsx'
 import ProjectCreate from './pages/project/ProjectCreate.tsx'
 import ProjectDetail from './pages/project/ProjectDetail.tsx'
 import ProjectList from './pages/project/ProjectList.tsx'
+import TargetCreate from './pages/project/TargetCreate.tsx'
 
 function App() {
   const { isInitialized } = useAuth()
@@ -28,6 +29,7 @@ function App() {
           <Route path="/" element={<ProjectList />} />
           <Route path="/projects/new" element={<ProjectCreate />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/:id/targets/new" element={<TargetCreate />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
