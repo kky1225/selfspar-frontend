@@ -28,6 +28,7 @@ export interface TargetRes {
   environment_label: string
   // 종류마다 담긴 칸이 다르다. 예: 저장소는 { path }, API는 { base_url, token_location, ... }
   config: Record<string, string>
+  account_count: number
   created_at: string
 }
 
@@ -54,3 +55,19 @@ export interface TargetFieldErrors {
   environment?: string[]
   config?: Record<string, string[]> | string[]
 }
+
+// 비밀번호는 서버가 돌려주지 않는다.
+export interface TestAccountRes {
+  id: number
+  label: string
+  username: string
+  created_at: string
+}
+
+export interface TestAccountCreateReq {
+  label: string
+  username: string
+  password: string
+}
+
+export type TestAccountFieldErrors = Partial<Record<keyof TestAccountCreateReq, string[]>> & { detail?: string }

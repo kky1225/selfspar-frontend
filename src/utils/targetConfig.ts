@@ -15,6 +15,9 @@ export const ENVIRONMENT_OPTIONS: { value: TargetEnvironment; label: string }[] 
   { value: 'prod', label: '운영' },
 ]
 
+// 로그인 기능이 있어서 테스트 계정을 등록할 수 있는 종류. 서버 Target.LOGIN_KINDS와 같다.
+export const LOGIN_KINDS: TargetKind[] = ['api', 'domain']
+
 export interface ConfigField {
   key: string
   label: string

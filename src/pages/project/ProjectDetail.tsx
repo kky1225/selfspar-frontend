@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Link,
   Paper,
   Stack,
   Table,
@@ -20,7 +21,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { fetchProject } from '../../api/project/ProjectApi.ts'
 import type { ProjectDetailRes } from '../../type/ProjectType.ts'
 import { formatDate } from '../../utils/formatDate.ts'
-import { configLabel, configValueLabel } from '../../utils/targetConfig.ts'
+import { configLabel, configValueLabel, LOGIN_KINDS } from '../../utils/targetConfig.ts'
 
 export default function ProjectDetail() {
   // 주소 /projects/:id 의 id 부분. 주소에서 꺼낸 값이라 글자다.
@@ -108,6 +109,7 @@ export default function ProjectDetail() {
                   <TableCell>종류</TableCell>
                   <TableCell>환경</TableCell>
                   <TableCell>정보</TableCell>
+                  <TableCell>테스트 계정</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -122,6 +124,18 @@ export default function ProjectDetail() {
                           {configLabel(key)}: {configValueLabel(key, value)}
                         </Typography>
                       ))}
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      {LOGIN_KINDS.includes(target.kind) ? (
+                        <>
+                          {target.account_count}개{' '}
+                          <Link component={RouterLink} to={`/projects/${project.id}/targets/${target.id}/accounts`}>
+                            관리
+                          </Link>
+                        </>
+                      ) : (
+                        '-'
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
