@@ -22,6 +22,7 @@ import { fetchProject } from '../../api/project/ProjectApi.ts'
 import type { ProjectDetailRes } from '../../type/ProjectType.ts'
 import { formatDate } from '../../utils/formatDate.ts'
 import { configLabel, configValueLabel, LOGIN_KINDS } from '../../utils/targetConfig.ts'
+import ProjectScans from '../scan/ProjectScans.tsx'
 
 export default function ProjectDetail() {
   // 주소 /projects/:id 의 id 부분. 주소에서 꺼낸 값이라 글자다.
@@ -144,6 +145,8 @@ export default function ProjectDetail() {
           </TableContainer>
         )}
       </Box>
+
+      <ProjectScans projectId={project.id} />
     </Stack>
   )
 }

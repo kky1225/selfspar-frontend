@@ -9,6 +9,7 @@ import ProjectDetail from './pages/project/ProjectDetail.tsx'
 import ProjectList from './pages/project/ProjectList.tsx'
 import TargetCreate from './pages/project/TargetCreate.tsx'
 import TestAccounts from './pages/project/TestAccounts.tsx'
+import ScanDetail from './pages/scan/ScanDetail.tsx'
 
 function App() {
   const { isInitialized } = useAuth()
@@ -32,6 +33,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/projects/:id/targets/new" element={<TargetCreate />} />
           <Route path="/projects/:id/targets/:targetId/accounts" element={<TestAccounts />} />
+          <Route path="/projects/:id/scans/:scanId" element={<ScanDetail />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
