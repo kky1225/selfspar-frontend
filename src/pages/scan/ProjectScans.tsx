@@ -122,14 +122,14 @@ export default function ProjectScans({ projectId }: Props) {
                       <Chip
                         size="small"
                         color="info"
-                        label={`${scan.status_label} ${scan.finished_task_count}/${scan.task_count}`}
+                        label={`${scan.status_label} ${scan.finished_run_count}/${scan.run_count}`}
                       />
                     ) : (
                       <Chip size="small" label={scan.status_label} />
                     )}
                   </TableCell>
                   <TableCell>
-                    {isActive(scan.status) ? '-' : `발견 ${scan.found_count} · 실패 ${scan.failed_count}`}
+                    {isActive(scan.status) ? '-' : `발견 ${scan.finding_count}건 · 실패 ${scan.failed_count}칸`}
                   </TableCell>
                 </TableRow>
               ))}

@@ -22,22 +22,29 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { fetchScan } from '../../api/scan/ScanApi.ts'
-import type { ScanDetailRes, ScanTaskRes } from '../../type/ScanType.ts'
+import type { ScanDetailRes, ModuleRunRes } from '../../type/ScanType.ts'
 import { formatDateTime, isActive, POLL_INTERVAL } from '../../utils/scan.ts'
+import FindingsDialog from './FindingsDialog.tsx'
 
-// 칸 상태별 표시. 발견은 개수를 함께 보여 준다.
-function TaskChip({ task, onShowError }: { task: ScanTaskRes; onShowError: (task: ScanTaskRes) => void }) {
-  switch (task.status) {
+interface RunChipProps {
+  run: ModuleRunRes
+  onShowError: (run: ModuleRunRes) => void
+  onShowFindings: (run: ModuleRunRes) => void
+}
+
+// 칸 상태별 표시. 발견은 개수를 함께 보여 주고, 누르면 발견 목록을 연다.
+function RunChip({ run, onShowError, onShowFindings }: RunChipProps) {
+  switch (run.status) {
     case 'passed':
       return <Chip size="small" color="success" label="이상 없음" />
     case 'found':
-      return <Chip size="small" color="error" label={`발견 ${task.finding_count}`} />
+      return <Chip size="small" color="error" label={`발견 ${run.finding_count}`} onClick={() => onShowFindings(run)} />
     case 'failed':
-      return <Chip size="small" color="warning" label="실패" onClick={() => onShowError(task)} />
+      return <Chip size="small" color="warning" label="실패" onClick={() => onShowError(run)} />
     case 'running':
       return <Chip size="small" color="info" label="실행 중" />
     default:
-      return <Chip size="small" variant="outlined" label={task.status_label} />
+      return <Chip size="small" variant="outlined" label={run.status_label} />
   }
 }
 
@@ -47,7 +54,9 @@ export default function ScanDetail() {
   const [scan, setScan] = useState<ScanDetailRes | null>(null)
   const [error, setError] = useState<string | null>(null)
   // 오류 내용 창에 띄울 칸. null이면 창이 닫혀 있다.
-  const [errorTask, setErrorTask] = useState<ScanTaskRes | null>(null)
+  const [errorRun, setErrorRun] = useState<ModuleRunRes | null>(null)
+  // 발견 목록 창에 띄울 칸. null이면 창이 닫혀 있다.
+  const [findingRun, setFindingRun] = useState<ModuleRunRes | null>(null)
 
   useEffect(() => {
     if (!id || !scanId) return
@@ -100,9 +109,13 @@ export default function ScanDetail() {
   }
 
   // (대상, 모듈)로 칸을 바로 찾을 수 있게 묶어 둔다. 칸이 없으면 그 대상에는 해당 없는 모듈이다.
-  const taskByCell = new Map(scan.tasks.map((task) => [`${task.target}:${task.module}`, task]))
-  const foundCount = scan.tasks.filter((task) => task.status === 'found').length
-  const failedCount = scan.tasks.filter((task) => task.status === 'failed').length
+  const runByCell = new Map(scan.runs.map((run) => [`${run.target}:${run.module}`, run]))
+  // 발견은 건수를 더하고, 실패는 칸 수를 센다.
+  const findingCount = scan.runs.reduce((sum, run) => sum + run.finding_count, 0)
+  const failedCount = scan.runs.filter((run) => run.status === 'failed').length
+  // 창 제목에 쓸 이름
+  const targetName = (id: number) => scan.targets.find((target) => target.id === id)?.name ?? ''
+  const moduleLabel = (key: string) => scan.modules.find((module) => module.key === key)?.label ?? key
 
   return (
     <Stack spacing={3}>
@@ -116,7 +129,7 @@ export default function ScanDetail() {
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {formatDateTime(scan.created_at)} – {scan.finished_at ? formatDateTime(scan.finished_at) : '진행 중'} · 칸{' '}
-          {scan.tasks.length}개 · 발견 {foundCount} · 실패 {failedCount}
+          {scan.runs.length}개 · 발견 {findingCount}건 · 실패 {failedCount}칸
         </Typography>
       </Box>
 
@@ -144,11 +157,11 @@ export default function ScanDetail() {
                   </Typography>
                 </TableCell>
                 {scan.modules.map((module) => {
-                  const task = taskByCell.get(`${target.id}:${module.key}`)
+                  const run = runByCell.get(`${target.id}:${module.key}`)
                   return (
                     <TableCell key={module.key} align="center">
-                      {task ? (
-                        <TaskChip task={task} onShowError={setErrorTask} />
+                      {run ? (
+                        <RunChip run={run} onShowError={setErrorRun} onShowFindings={setFindingRun} />
                       ) : (
                         <Typography component="span" sx={{ color: 'text.disabled' }}>
                           –
@@ -164,19 +177,30 @@ export default function ScanDetail() {
       </TableContainer>
 
       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-        – 는 그 대상에 해당하지 않는 점검입니다. 실패 칸을 누르면 오류 내용을 볼 수 있습니다.
+        – 는 그 대상에 해당하지 않는 점검입니다. 발견 칸을 누르면 발견 목록을, 실패 칸을 누르면 오류 내용을 볼 수
+        있습니다.
       </Typography>
 
-      <Dialog open={errorTask !== null} onClose={() => setErrorTask(null)} fullWidth maxWidth="sm">
+      {findingRun && (
+        <FindingsDialog
+          key={findingRun.id}
+          run={findingRun}
+          scanId={scan.id}
+          title={`${targetName(findingRun.target)} · ${moduleLabel(findingRun.module)}`}
+          onClose={() => setFindingRun(null)}
+        />
+      )}
+
+      <Dialog open={errorRun !== null} onClose={() => setErrorRun(null)} fullWidth maxWidth="sm">
         <DialogTitle>점검 실패 내용</DialogTitle>
         <DialogContent>
           {/* 도구가 낸 오류는 여러 줄이라 줄바꿈을 그대로 보여 준다. */}
           <Typography component="pre" variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', m: 0 }}>
-            {errorTask?.error_message}
+            {errorRun?.error_message}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setErrorTask(null)}>닫기</Button>
+          <Button onClick={() => setErrorRun(null)}>닫기</Button>
         </DialogActions>
       </Dialog>
     </Stack>

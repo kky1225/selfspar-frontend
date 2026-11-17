@@ -2,7 +2,7 @@ import type { TargetEnvironment, TargetKind } from './ProjectType.ts'
 
 export type ScanStatus = 'queued' | 'running' | 'done'
 
-export type ScanTaskStatus = 'queued' | 'running' | 'passed' | 'found' | 'failed'
+export type ModuleRunStatus = 'queued' | 'running' | 'passed' | 'found' | 'failed'
 
 // 프로젝트 상세의 최근 점검 목록 한 줄
 export interface ScanSummaryRes {
@@ -11,9 +11,10 @@ export interface ScanSummaryRes {
   status_label: string
   created_at: string
   finished_at: string | null
-  task_count: number
-  finished_task_count: number
-  found_count: number
+  run_count: number
+  finished_run_count: number
+  // 발견 건수 합계(칸 수가 아니다)
+  finding_count: number
   failed_count: number
 }
 
@@ -31,12 +32,12 @@ export interface ScanTargetRes {
   environment_label: string
 }
 
-// 결과 격자의 칸 하나. target은 대상 번호다.
-export interface ScanTaskRes {
+// 모듈 실행 하나(결과 격자의 칸 하나). target은 대상 번호다.
+export interface ModuleRunRes {
   id: number
   target: number
   module: string
-  status: ScanTaskStatus
+  status: ModuleRunStatus
   status_label: string
   finding_count: number
   tool_version: string
@@ -54,5 +55,5 @@ export interface ScanDetailRes {
   finished_at: string | null
   modules: ScanModuleRes[]
   targets: ScanTargetRes[]
-  tasks: ScanTaskRes[]
+  runs: ModuleRunRes[]
 }
