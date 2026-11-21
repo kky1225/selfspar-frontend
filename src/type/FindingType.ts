@@ -1,6 +1,7 @@
 export type FindingSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
 
-// 점검 칸 하나에서 찾은 발견. extra는 모듈마다 다르다(시크릿 점검은 commit, date).
+// 점검 칸 하나에서 찾은 발견. extra는 모듈마다 다르다.
+// 시크릿 점검은 commit, date / 의존성 점검은 package, installed_version, fixed_version, url
 export interface FindingRes {
   id: number
   rule_id: string
