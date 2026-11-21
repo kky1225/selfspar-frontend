@@ -1,5 +1,5 @@
 import api from '../../axios.ts'
-import type { ScanDetailRes, ScanSummaryRes } from '../../type/ScanType.ts'
+import type { RescanReq, ScanDetailRes, ScanSummaryRes } from '../../type/ScanType.ts'
 
 export const fetchScans = async (projectId: string): Promise<ScanSummaryRes[]> => {
   const res = await api.get<ScanSummaryRes[]>(`/projects/${projectId}/scans/`)
@@ -9,6 +9,12 @@ export const fetchScans = async (projectId: string): Promise<ScanSummaryRes[]> =
 // 전체 점검을 시작한다. 서버는 점검을 만들어 worker에 넘기고 바로 응답한다.
 export const startScan = async (projectId: string): Promise<ScanDetailRes> => {
   const res = await api.post<ScanDetailRes>(`/projects/${projectId}/scans/`)
+  return res.data
+}
+
+// 지난 점검에서 고른 칸만 새 점검으로 다시 돌린다. 지난 점검의 결과는 그대로 남는다.
+export const startRescan = async (projectId: string, req: RescanReq): Promise<ScanDetailRes> => {
+  const res = await api.post<ScanDetailRes>(`/projects/${projectId}/scans/`, req)
   return res.data
 }
 

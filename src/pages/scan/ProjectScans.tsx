@@ -104,6 +104,7 @@ export default function ProjectScans({ projectId }: Props) {
               <TableRow>
                 <TableCell>번호</TableCell>
                 <TableCell>시작</TableCell>
+                <TableCell>종류</TableCell>
                 <TableCell>상태</TableCell>
                 <TableCell>결과</TableCell>
               </TableRow>
@@ -117,6 +118,7 @@ export default function ProjectScans({ projectId }: Props) {
                     </Link>
                   </TableCell>
                   <TableCell>{formatDateTime(scan.created_at)}</TableCell>
+                  <TableCell>{scan.source_scan === null ? '전체 점검' : `재점검 (#${scan.source_scan}에서)`}</TableCell>
                   <TableCell>
                     {isActive(scan.status) ? (
                       <Chip
