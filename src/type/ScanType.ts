@@ -1,8 +1,8 @@
 import type { TargetEnvironment, TargetKind } from './ProjectType.ts'
 
-export type ScanStatus = 'queued' | 'running' | 'done'
+export type ScanStatus = 'queued' | 'running' | 'done' | 'cancelled'
 
-export type ModuleRunStatus = 'queued' | 'running' | 'passed' | 'found' | 'failed'
+export type ModuleRunStatus = 'queued' | 'running' | 'passed' | 'found' | 'failed' | 'cancelled'
 
 // 프로젝트 상세의 최근 점검 목록 한 줄
 export interface ScanSummaryRes {

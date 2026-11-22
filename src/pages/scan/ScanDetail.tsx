@@ -24,7 +24,7 @@ import {
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import { fetchScan, startRescan } from '../../api/scan/ScanApi.ts'
+import { cancelScan, fetchScan, startRescan } from '../../api/scan/ScanApi.ts'
 import type { ScanDetailRes, ModuleRunRes } from '../../type/ScanType.ts'
 import { formatDateTime, isActive, POLL_INTERVAL } from '../../utils/scan.ts'
 import FindingsDialog from './FindingsDialog.tsx'
@@ -54,6 +54,8 @@ function RunChip({ run, onShowError, onShowFindings }: RunChipProps) {
       return <Chip size="small" color="warning" label="실패" onClick={onShowError && (() => onShowError(run))} />
     case 'running':
       return <Chip size="small" color="info" label="실행 중" />
+    case 'cancelled':
+      return <Chip size="small" label="취소" />
     default:
       return <Chip size="small" variant="outlined" label={run.status_label} />
   }
@@ -83,6 +85,10 @@ export default function ScanDetail() {
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [rescanning, setRescanning] = useState(false)
   const [rescanError, setRescanError] = useState<string | null>(null)
+  // 취소 확인 창이 열려 있는지와 취소 요청 상태
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id || !scanId) return
@@ -97,7 +103,8 @@ export default function ScanDetail() {
             setError('점검을 찾을 수 없습니다.')
             return
           }
-          setScan(data)
+          // 취소한 직후, 취소 전에 보낸 요청의 응답이 늦게 오면 '실행 중'으로 되돌리지 않는다.
+          setScan((prev) => (prev?.id === data.id && !isActive(prev.status) && isActive(data.status) ? prev : data))
           // 끝날 때까지 잠시마다 다시 불러와 칸 상태를 갱신한다.
           if (isActive(data.status)) {
             timer = window.setTimeout(load, POLL_INTERVAL)
@@ -176,12 +183,28 @@ export default function ScanDetail() {
       // 같은 화면에서 주소만 바뀌므로, 이 점검을 보던 상태를 비우고 새 점검을 불러오게 한다.
       cancelSelecting()
       setRescanning(false)
+      setCancelError(null)
       setScan(null)
       navigate(`/projects/${scan.project.id}/scans/${created.id}`)
     } catch (e) {
       // 실행 중인 점검이 있음(409), 고른 칸이 잘못됨(400), 실행기 연결 실패(503)는 서버 문구를 그대로 보여 준다.
       setRescanError(serverMessage(e) ?? '다시 점검을 시작하지 못했습니다. 잠시 후 다시 시도하세요.')
       setRescanning(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    setCancelError(null)
+    setCancelling(true)
+    try {
+      // 서버가 돌려준 취소된 점검으로 바로 바꾼다. 다시 불러오기는 끝난 점검이라 저절로 멈춘다.
+      setScan(await cancelScan(scan.id))
+    } catch (e) {
+      // 그 사이 점검이 끝났으면(409) 서버 문구를 그대로 보여 준다.
+      setCancelError(serverMessage(e) ?? '점검을 취소하지 못했습니다. 잠시 후 다시 시도하세요.')
+    } finally {
+      setCancelling(false)
+      setConfirmingCancel(false)
     }
   }
 
@@ -192,9 +215,12 @@ export default function ScanDetail() {
         <Button component={RouterLink} to={`/projects/${scan.project.id}`} sx={{ mb: 1, textTransform: 'none' }}>
           ← {scan.project.name}
         </Button>
-        <Typography variant="h5" component="h1">
-          점검 #{scan.id} 결과
-        </Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Typography variant="h5" component="h1">
+            점검 #{scan.id} 결과
+          </Typography>
+          {scan.status === 'cancelled' && <Chip size="small" label="취소됨" />}
+        </Stack>
         {isRescan && (
           <Typography variant="body2">
             <Link component={RouterLink} to={`/projects/${scan.project.id}/scans/${scan.source_scan}`}>
@@ -209,7 +235,20 @@ export default function ScanDetail() {
         </Typography>
       </Box>
 
-      {isActive(scan.status) && <Alert severity="info">점검이 {scan.status_label}입니다. 끝날 때까지 자동으로 갱신합니다.</Alert>}
+      {isActive(scan.status) && (
+        <Alert
+          severity="info"
+          action={
+            <Button color="inherit" size="small" onClick={() => setConfirmingCancel(true)}>
+              점검 취소
+            </Button>
+          }
+        >
+          점검이 {scan.status_label}입니다. 끝날 때까지 자동으로 갱신합니다.
+        </Alert>
+      )}
+
+      {cancelError && <Alert severity="error">{cancelError}</Alert>}
 
       {/* 끝난 점검에서만 다시 점검할 수 있다. 실행 중인 점검이 끝나기 전에는 새 점검을 시작할 수 없다. */}
       {!isActive(scan.status) &&
@@ -323,6 +362,23 @@ export default function ScanDetail() {
           onClose={() => setFindingRun(null)}
         />
       )}
+
+      <Dialog open={confirmingCancel} onClose={() => setConfirmingCancel(false)} fullWidth maxWidth="xs">
+        <DialogTitle>점검 #{scan.id}을 취소할까요?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            실행 중인 칸은 멈추고, 아직 시작하지 않은 칸은 실행하지 않습니다. 끝난 칸의 결과는 남습니다.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmingCancel(false)} disabled={cancelling}>
+            닫기
+          </Button>
+          <Button color="error" variant="contained" onClick={handleCancel} disabled={cancelling}>
+            {cancelling ? '취소하는 중…' : '점검 취소'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={errorRun !== null} onClose={() => setErrorRun(null)} fullWidth maxWidth="sm">
         <DialogTitle>점검 실패 내용</DialogTitle>

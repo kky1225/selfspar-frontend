@@ -85,7 +85,7 @@ export default function ProjectScans({ projectId }: Props) {
       </Box>
       {running && (
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
-          실행 중인 점검이 끝나면 새로 시작할 수 있습니다.
+          실행 중인 점검이 끝나거나, 그 점검 결과 화면에서 취소하면 새로 시작할 수 있습니다.
         </Typography>
       )}
       {startError && (
